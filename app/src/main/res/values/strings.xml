@@ -1,15 +1,24 @@
 <resources>
     <string name="app_name">Природа поруч</string>
-    <string name="brief_tagline">Показує свіжі спостереження тварин і рослин з iNaturalist поблизу вас і дозволяє зібрати власний список видів.</string>
-    <string name="brief_screens_title">Екрани</string>
-    <string name="brief_screen_catalog">Каталог: стрічка спостережень із фото, назвою виду та місцем</string>
-    <string name="brief_screen_details">Деталі: картка виду з великим фото, датою, місцем і координатами</string>
-    <string name="brief_screen_list">Мій список: види, збережені на пристрої</string>
-    <string name="brief_screen_settings">Налаштування: радіус пошуку та тема оформлення</string>
-    <string name="brief_source_title">Джерело даних</string>
-    <string name="brief_source_api">iNaturalist API v1, без ключа</string>
-    <string name="brief_source_request">GET /v1/observations?taxon_name=Vulpes&amp;per_page=20&amp;photos=true</string>
-    <string name="brief_source_image">Зображення: results[].photos[0].url (square → medium / large)</string>
-    <string name="brief_local_title">Зберігається на пристрої</string>
-    <string name="brief_local_text">Власний список видів і радіус пошуку</string>
+    <string name="catalog_header">Останні спостереження поблизу</string>
+    <plurals name="observations_count">
+        <item quantity="one">%d спостереження</item>
+        <item quantity="few">%d спостереження</item>
+        <item quantity="many">%d спостережень</item>
+        <item quantity="other">%d спостереження</item>
+    </plurals>
+    <string name="label_place">Місце</string>
+    <string name="label_date">Дата</string>
+    <string name="label_location">Координати</string>
+    <string name="taxon_mammalia">Ссавці</string>
+    <string name="taxon_aves">Птахи</string>
+    <string name="taxon_reptilia">Плазуни</string>
+    <string name="taxon_amphibia">Земноводні</string>
+    <string name="taxon_insecta">Комахи</string>
+    <string name="taxon_plantae">Рослини</string>
+    <string name="taxon_fungi">Гриби</string>
+    <string name="taxon_other">Інше</string>
+    <string name="quality_research">Підтверджено</string>
+    <string name="quality_needs_id">Потребує визначення</string>
+    <string name="quality_casual">Випадкове</string>
 </resources>
