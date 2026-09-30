@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Природа поруч</string>
+    <string name="brief_tagline">Показує свіжі спостереження тварин і рослин з iNaturalist поблизу вас і дозволяє зібрати власний список видів.</string>
+    <string name="brief_screens_title">Екрани</string>
+    <string name="brief_screen_catalog">Каталог: стрічка спостережень із фото, назвою виду та місцем</string>
+    <string name="brief_screen_details">Деталі: картка виду з великим фото, датою, місцем і координатами</string>
+    <string name="brief_screen_list">Мій список: види, збережені на пристрої</string>
+    <string name="brief_screen_settings">Налаштування: радіус пошуку та тема оформлення</string>
+    <string name="brief_source_title">Джерело даних</string>
+    <string name="brief_source_api">iNaturalist API v1, без ключа</string>
+    <string name="brief_source_request">GET /v1/observations?taxon_name=Vulpes&amp;per_page=20&amp;photos=true</string>
+    <string name="brief_source_image">Зображення: results[].photos[0].url (square → medium / large)</string>
+    <string name="brief_local_title">Зберігається на пристрої</string>
+    <string name="brief_local_text">Власний список видів і радіус пошуку</string>
+</resources>
