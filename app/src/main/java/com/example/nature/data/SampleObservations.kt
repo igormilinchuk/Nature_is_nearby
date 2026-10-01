@@ -70,6 +70,60 @@ object SampleObservations {
                     localRes = R.drawable.obs_stork
                 )
             )
+        ),
+        Observation(
+            id = 900000001,
+            species_guess = "Синиця велика",
+            place_guess = "Голосіївський парк, Київ, Україна",
+            observed_on = "2026-09-14",
+            location = "50.3920,30.5160",
+            quality_grade = "research",
+            taxon = Taxon(
+                id = 13094,
+                name = "Parus major",
+                preferred_common_name = "Синиця велика",
+                rank = "species",
+                iconic_taxon_name = "Aves"
+            ),
+            photos = listOf(
+                Photo(id = 900000101, url = "", localRes = R.drawable.obs_tit)
+            )
+        ),
+        Observation(
+            id = 900000002,
+            species_guess = "Махаон",
+            place_guess = "Канівський заповідник, Черкаська область, Україна",
+            observed_on = "2026-07-21",
+            location = "49.7350,31.5050",
+            quality_grade = "needs_id",
+            taxon = Taxon(
+                id = 58523,
+                name = "Papilio machaon",
+                preferred_common_name = "Махаон",
+                rank = "species",
+                iconic_taxon_name = "Insecta"
+            ),
+            photos = listOf(
+                Photo(id = 900000102, url = "", localRes = R.drawable.obs_swallowtail)
+            )
+        ),
+        Observation(
+            id = 900000003,
+            species_guess = "Волошка синя",
+            place_guess = "Васильків, Київська область, Україна",
+            observed_on = "2026-06-30",
+            location = "50.1800,30.3200",
+            quality_grade = "casual",
+            taxon = Taxon(
+                id = 52821,
+                name = "Centaurea cyanus",
+                preferred_common_name = "Волошка синя",
+                rank = "species",
+                iconic_taxon_name = "Plantae"
+            ),
+            photos = listOf(
+                Photo(id = 900000103, url = "", localRes = R.drawable.obs_cornflower)
+            )
         )
     )
 }

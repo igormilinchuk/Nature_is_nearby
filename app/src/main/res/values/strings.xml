@@ -18,6 +18,10 @@
     <string name="taxon_plantae">Рослини</string>
     <string name="taxon_fungi">Гриби</string>
     <string name="taxon_other">Інше</string>
+    <string name="filter_all">Усі</string>
+    <string name="empty_title">Нічого не знайдено</string>
+    <string name="empty_message">У групі «%1$s» поблизу поки немає спостережень.</string>
+    <string name="empty_show_all">Показати всі</string>
     <string name="quality_research">Підтверджено</string>
     <string name="quality_needs_id">Потребує визначення</string>
     <string name="quality_casual">Випадкове</string>
