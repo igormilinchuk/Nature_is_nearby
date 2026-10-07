@@ -9,6 +9,8 @@ data class Observation(
     val observed_on: String,
     val location: String,
     val quality_grade: String,
+    val description: String?,
+    val uri: String,
     val taxon: Taxon,
     val photos: List<Photo>
 )
@@ -18,7 +20,8 @@ data class Taxon(
     val name: String,
     val preferred_common_name: String,
     val rank: String,
-    val iconic_taxon_name: String
+    val iconic_taxon_name: String,
+    val wikipedia_url: String?
 )
 
 data class Photo(

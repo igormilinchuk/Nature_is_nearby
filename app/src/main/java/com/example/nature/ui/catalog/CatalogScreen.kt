@@ -38,6 +38,7 @@ import com.example.nature.ui.theme.NatureTheme
 
 @Composable
 fun CatalogRoute(
+    onItemClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CatalogViewModel = viewModel()
 ) {
@@ -46,6 +47,7 @@ fun CatalogRoute(
         uiState = uiState,
         onFilterSelected = viewModel::onFilterSelected,
         onShowAll = viewModel::onShowAllClicked,
+        onItemClick = onItemClick,
         modifier = modifier
     )
 }
@@ -56,6 +58,7 @@ fun CatalogScreen(
     uiState: CatalogUiState,
     onFilterSelected: (TaxonFilter) -> Unit,
     onShowAll: () -> Unit,
+    onItemClick: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val visible = uiState.visibleObservations
@@ -118,7 +121,10 @@ fun CatalogScreen(
                         )
                     }
                     items(visible, key = { it.id }) { observation ->
-                        ObservationCard(observation = observation)
+                        ObservationCard(
+                            observation = observation,
+                            onClick = { onItemClick(observation.id) }
+                        )
                     }
                 }
             }
@@ -190,7 +196,8 @@ private fun CatalogScreenPreview() {
                 visibleObservations = SampleObservations.items
             ),
             onFilterSelected = {},
-            onShowAll = {}
+            onShowAll = {},
+            onItemClick = {}
         )
     }
 }

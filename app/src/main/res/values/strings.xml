@@ -25,4 +25,21 @@
     <string name="quality_research">Підтверджено</string>
     <string name="quality_needs_id">Потребує визначення</string>
     <string name="quality_casual">Випадкове</string>
+    <string name="action_back">Назад</string>
+    <string name="detail_title">Спостереження</string>
+    <string name="detail_section_observation">Спостереження</string>
+    <string name="detail_section_taxon">Вид</string>
+    <string name="detail_section_description">Нотатки автора</string>
+    <string name="detail_section_links">Посилання</string>
+    <string name="label_species_guess">Визначення автора</string>
+    <string name="label_quality">Якість</string>
+    <string name="label_observation_id">ID спостереження</string>
+    <string name="label_taxon_group">Група</string>
+    <string name="label_rank">Ранг</string>
+    <string name="label_taxon_id">ID таксона</string>
+    <string name="link_inaturalist">Відкрити на iNaturalist</string>
+    <string name="link_wikipedia">Відкрити у Вікіпедії</string>
+    <string name="detail_not_found_title">Спостереження не знайдено</string>
+    <string name="detail_not_found_message">Запису з ID %1$d немає. Можливо, його видалили або посилання застаріло.</string>
+    <string name="detail_not_found_action">До списку</string>
 </resources>

@@ -38,9 +38,11 @@ import com.example.nature.ui.theme.NatureTheme
 @Composable
 fun ObservationCard(
     observation: Observation,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
+        onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -130,7 +132,7 @@ private fun ObservationImage(observation: Observation) {
 }
 
 @Composable
-private fun Badge(
+internal fun Badge(
     text: String,
     containerColor: Color,
     contentColor: Color,
@@ -171,13 +173,13 @@ private fun InfoItem(
     }
 }
 
-private fun formatLocation(location: String): String =
+internal fun formatLocation(location: String): String =
     location.split(",")
         .mapNotNull { it.trim().toDoubleOrNull() }
         .joinToString(", ") { "%.4f".format(java.util.Locale.US, it) }
 
 @StringRes
-private fun iconicTaxonLabel(iconicTaxonName: String): Int = when (iconicTaxonName) {
+internal fun iconicTaxonLabel(iconicTaxonName: String): Int = when (iconicTaxonName) {
     "Mammalia" -> R.string.taxon_mammalia
     "Aves" -> R.string.taxon_aves
     "Reptilia" -> R.string.taxon_reptilia
@@ -189,7 +191,7 @@ private fun iconicTaxonLabel(iconicTaxonName: String): Int = when (iconicTaxonNa
 }
 
 @StringRes
-private fun qualityLabel(qualityGrade: String): Int = when (qualityGrade) {
+internal fun qualityLabel(qualityGrade: String): Int = when (qualityGrade) {
     "research" -> R.string.quality_research
     "needs_id" -> R.string.quality_needs_id
     else -> R.string.quality_casual
@@ -201,6 +203,7 @@ private fun ObservationCardPreview() {
     NatureTheme {
         ObservationCard(
             observation = SampleObservations.items.first(),
+            onClick = {},
             modifier = Modifier.padding(16.dp)
         )
     }
