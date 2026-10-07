@@ -21,10 +21,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
@@ -33,21 +29,36 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nature.R
-import com.example.nature.data.Observation
 import com.example.nature.data.SampleObservations
 import com.example.nature.data.TaxonFilter
-import com.example.nature.data.filterBy
 import com.example.nature.ui.theme.NatureTheme
+
+@Composable
+fun CatalogRoute(
+    modifier: Modifier = Modifier,
+    viewModel: CatalogViewModel = viewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    CatalogScreen(
+        uiState = uiState,
+        onFilterSelected = viewModel::onFilterSelected,
+        onShowAll = viewModel::onShowAllClicked,
+        modifier = modifier
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CatalogScreen(
-    observations: List<Observation>,
+    uiState: CatalogUiState,
+    onFilterSelected: (TaxonFilter) -> Unit,
+    onShowAll: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var selectedFilter by rememberSaveable { mutableStateOf(TaxonFilter.ALL) }
-    val visible = remember(observations, selectedFilter) { observations.filterBy(selectedFilter) }
+    val visible = uiState.visibleObservations
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -82,15 +93,15 @@ fun CatalogScreen(
                 .padding(innerPadding)
         ) {
             TaxonFilterRow(
-                options = TaxonFilter.entries,
-                selected = selectedFilter,
-                onSelect = { selectedFilter = it }
+                options = uiState.filters,
+                selected = uiState.selectedFilter,
+                onSelect = onFilterSelected
             )
 
             if (visible.isEmpty()) {
                 EmptyState(
-                    filter = selectedFilter,
-                    onShowAll = { selectedFilter = TaxonFilter.ALL },
+                    filter = uiState.selectedFilter,
+                    onShowAll = onShowAll,
                     modifier = Modifier.fillMaxSize()
                 )
             } else {
@@ -173,7 +184,14 @@ private fun EmptyState(
 @Composable
 private fun CatalogScreenPreview() {
     NatureTheme {
-        CatalogScreen(observations = SampleObservations.items)
+        CatalogScreen(
+            uiState = CatalogUiState(
+                observations = SampleObservations.items,
+                visibleObservations = SampleObservations.items
+            ),
+            onFilterSelected = {},
+            onShowAll = {}
+        )
     }
 }
 

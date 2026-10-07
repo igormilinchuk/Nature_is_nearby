@@ -4,8 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.example.nature.data.SampleObservations
-import com.example.nature.ui.catalog.CatalogScreen
+import com.example.nature.ui.catalog.CatalogRoute
 import com.example.nature.ui.theme.NatureTheme
 
 class MainActivity : ComponentActivity() {
@@ -14,7 +13,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             NatureTheme {
-                CatalogScreen(observations = SampleObservations.items)
+                CatalogRoute()
             }
         }
     }
