@@ -14,6 +14,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -23,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -39,6 +42,7 @@ import com.example.nature.ui.theme.NatureTheme
 @Composable
 fun CatalogRoute(
     onItemClick: (Long) -> Unit,
+    onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CatalogViewModel = viewModel()
 ) {
@@ -48,6 +52,7 @@ fun CatalogRoute(
         onFilterSelected = viewModel::onFilterSelected,
         onShowAll = viewModel::onShowAllClicked,
         onItemClick = onItemClick,
+        onSettingsClick = onSettingsClick,
         modifier = modifier
     )
 }
@@ -59,6 +64,7 @@ fun CatalogScreen(
     onFilterSelected: (TaxonFilter) -> Unit,
     onShowAll: () -> Unit,
     onItemClick: (Long) -> Unit,
+    onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val visible = uiState.visibleObservations
@@ -83,9 +89,18 @@ fun CatalogScreen(
                         )
                     }
                 },
+                actions = {
+                    IconButton(onClick = onSettingsClick) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_settings),
+                            contentDescription = stringResource(R.string.settings_title)
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
         }
@@ -123,6 +138,7 @@ fun CatalogScreen(
                     items(visible, key = { it.id }) { observation ->
                         ObservationCard(
                             observation = observation,
+                            showScientificNames = uiState.showScientificNames,
                             onClick = { onItemClick(observation.id) }
                         )
                     }
@@ -197,7 +213,8 @@ private fun CatalogScreenPreview() {
             ),
             onFilterSelected = {},
             onShowAll = {},
-            onItemClick = {}
+            onItemClick = {},
+            onSettingsClick = {}
         )
     }
 }

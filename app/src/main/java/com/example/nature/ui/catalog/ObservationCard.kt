@@ -38,6 +38,7 @@ import com.example.nature.ui.theme.NatureTheme
 @Composable
 fun ObservationCard(
     observation: Observation,
+    showScientificNames: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -53,16 +54,17 @@ fun ObservationCard(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
                 Text(
-                    text = observation.taxon.preferred_common_name,
+                    text = if (showScientificNames) observation.taxon.name else observation.taxon.preferred_common_name,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
+                    fontStyle = if (showScientificNames) FontStyle.Italic else FontStyle.Normal,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = observation.taxon.name,
+                    text = if (showScientificNames) observation.taxon.preferred_common_name else observation.taxon.name,
                     style = MaterialTheme.typography.bodyMedium,
-                    fontStyle = FontStyle.Italic,
+                    fontStyle = if (showScientificNames) FontStyle.Normal else FontStyle.Italic,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
@@ -203,6 +205,7 @@ private fun ObservationCardPreview() {
     NatureTheme {
         ObservationCard(
             observation = SampleObservations.items.first(),
+            showScientificNames = false,
             onClick = {},
             modifier = Modifier.padding(16.dp)
         )

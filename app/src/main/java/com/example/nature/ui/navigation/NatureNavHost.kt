@@ -9,9 +9,11 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.nature.ui.catalog.CatalogRoute
 import com.example.nature.ui.detail.ObservationDetailRoute
+import com.example.nature.ui.settings.SettingsRoute
 
 object NatureDestinations {
     const val CATALOG = "catalog"
+    const val SETTINGS = "settings"
     const val OBSERVATION_ID = "observationId"
     const val DETAIL = "observation/{$OBSERVATION_ID}"
 
@@ -28,7 +30,13 @@ fun NatureNavHost(
     ) {
         composable(NatureDestinations.CATALOG) {
             CatalogRoute(
-                onItemClick = { id -> navController.navigate(NatureDestinations.detail(id)) }
+                onItemClick = { id -> navController.navigate(NatureDestinations.detail(id)) },
+                onSettingsClick = { navController.navigate(NatureDestinations.SETTINGS) }
+            )
+        }
+        composable(NatureDestinations.SETTINGS) {
+            SettingsRoute(
+                onBackClick = { navController.navigateUp() }
             )
         }
         composable(

@@ -1,15 +1,23 @@
 package com.example.nature.ui.catalog
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.nature.data.SampleObservations
+import com.example.nature.data.SettingsRepository
 import com.example.nature.data.TaxonFilter
 import com.example.nature.data.filterBy
+import com.example.nature.data.settingsDataStore
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
-class CatalogViewModel : ViewModel() {
+class CatalogViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val settingsRepository = SettingsRepository(application.settingsDataStore)
 
     private val _uiState = MutableStateFlow(
         CatalogUiState(
@@ -17,7 +25,17 @@ class CatalogViewModel : ViewModel() {
             visibleObservations = SampleObservations.items
         )
     )
-    val uiState: StateFlow<CatalogUiState> = _uiState.asStateFlow()
+
+    val uiState: StateFlow<CatalogUiState> = combine(
+        _uiState,
+        settingsRepository.showScientificNames
+    ) { state, showScientificNames ->
+        state.copy(showScientificNames = showScientificNames)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = _uiState.value
+    )
 
     fun onFilterSelected(filter: TaxonFilter) {
         _uiState.update { state ->

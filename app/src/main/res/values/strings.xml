@@ -42,4 +42,8 @@
     <string name="detail_not_found_title">Спостереження не знайдено</string>
     <string name="detail_not_found_message">Запису з ID %1$d немає. Можливо, його видалили або посилання застаріло.</string>
     <string name="detail_not_found_action">До списку</string>
+    <string name="settings_title">Налаштування</string>
+    <string name="settings_section_names">Назви видів</string>
+    <string name="settings_scientific_names_title">Наукові назви першими</string>
+    <string name="settings_scientific_names_summary">У списку спостережень показувати латинську назву виду замість української</string>
 </resources>
