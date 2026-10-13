@@ -46,4 +46,9 @@
     <string name="settings_section_names">Назви видів</string>
     <string name="settings_scientific_names_title">Наукові назви першими</string>
     <string name="settings_scientific_names_summary">У списку спостережень показувати латинську назву виду замість української</string>
+    <string name="unknown_species">Невідомий вид</string>
+    <string name="value_unknown">—</string>
+    <string name="photo_placeholder">Фото з\'явиться згодом</string>
+    <string name="error_title">Не вдалося завантажити спостереження</string>
+    <string name="action_retry">Спробувати ще раз</string>
 </resources>

@@ -27,6 +27,12 @@ GET https://api.inaturalist.org/v1/observations?taxon_name=Vulpes&per_page=20&ph
 - Власний список видів
 - Радіус пошуку
 
+## Запити до API (ЛР 7)
+
+- Список: `GET /v1/observations?lat=50.4501&lng=30.5234&radius=50&photos=true&order_by=observed_on&per_page=30&locale=uk`, а для обраної групи додається `iconic_taxa=Mammalia` (Aves, Insecta, Plantae, Fungi).
+- Деталі: `GET /v1/observations/{id}?locale=uk`.
+- Ключ API не потрібен, тож у `local.properties` нічого дописувати не треба.
+
 ## Технології
 
-Kotlin, Jetpack Compose, Material 3, Gradle Kotlin DSL.
+Kotlin, Jetpack Compose, Material 3, Navigation Compose, DataStore, Retrofit, kotlinx.serialization, Gradle Kotlin DSL.

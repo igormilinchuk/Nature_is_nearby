@@ -11,7 +11,3 @@ enum class TaxonFilter(val iconicTaxonName: String?, @StringRes val label: Int) 
     PLANTAE("Plantae", R.string.taxon_plantae),
     FUNGI("Fungi", R.string.taxon_fungi)
 }
-
-fun List<Observation>.filterBy(filter: TaxonFilter): List<Observation> =
-    if (filter.iconicTaxonName == null) this
-    else filter { it.taxon.iconic_taxon_name == filter.iconicTaxonName }

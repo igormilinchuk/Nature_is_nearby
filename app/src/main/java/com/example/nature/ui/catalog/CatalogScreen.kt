@@ -1,6 +1,7 @@
 package com.example.nature.ui.catalog
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -12,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -35,7 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nature.R
-import com.example.nature.data.SampleObservations
+import com.example.nature.ui.previewObservation
 import com.example.nature.data.TaxonFilter
 import com.example.nature.ui.theme.NatureTheme
 
@@ -51,6 +53,7 @@ fun CatalogRoute(
         uiState = uiState,
         onFilterSelected = viewModel::onFilterSelected,
         onShowAll = viewModel::onShowAllClicked,
+        onRetry = viewModel::onRetryClicked,
         onItemClick = onItemClick,
         onSettingsClick = onSettingsClick,
         modifier = modifier
@@ -63,11 +66,12 @@ fun CatalogScreen(
     uiState: CatalogUiState,
     onFilterSelected: (TaxonFilter) -> Unit,
     onShowAll: () -> Unit,
+    onRetry: () -> Unit,
     onItemClick: (Long) -> Unit,
     onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val visible = uiState.visibleObservations
+    val visible = uiState.observations
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -116,7 +120,19 @@ fun CatalogScreen(
                 onSelect = onFilterSelected
             )
 
-            if (visible.isEmpty()) {
+            if (uiState.isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else if (uiState.isError) {
+                ErrorState(
+                    onRetry = onRetry,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else if (visible.isEmpty()) {
                 EmptyState(
                     filter = uiState.selectedFilter,
                     onShowAll = onShowAll,
@@ -202,17 +218,38 @@ private fun EmptyState(
     }
 }
 
+@Composable
+private fun ErrorState(
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.padding(32.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = stringResource(R.string.error_title),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onRetry) {
+            Text(stringResource(R.string.action_retry))
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 private fun CatalogScreenPreview() {
     NatureTheme {
         CatalogScreen(
-            uiState = CatalogUiState(
-                observations = SampleObservations.items,
-                visibleObservations = SampleObservations.items
-            ),
+            uiState = CatalogUiState(observations = listOf(previewObservation)),
             onFilterSelected = {},
             onShowAll = {},
+            onRetry = {},
             onItemClick = {},
             onSettingsClick = {}
         )

@@ -1,7 +1,7 @@
 package com.example.nature.ui.detail
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +16,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -31,7 +32,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -45,7 +45,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nature.R
 import com.example.nature.data.Observation
-import com.example.nature.data.SampleObservations
+import com.example.nature.data.commonName
+import com.example.nature.data.scientificName
+import com.example.nature.ui.previewObservation
 import com.example.nature.ui.catalog.Badge
 import com.example.nature.ui.catalog.formatLocation
 import com.example.nature.ui.catalog.iconicTaxonLabel
@@ -62,6 +64,7 @@ fun ObservationDetailRoute(
     ObservationDetailScreen(
         uiState = uiState,
         onBackClick = onBackClick,
+        onRetry = viewModel::onRetryClicked,
         modifier = modifier
     )
 }
@@ -71,6 +74,7 @@ fun ObservationDetailRoute(
 fun ObservationDetailScreen(
     uiState: ObservationDetailUiState,
     onBackClick: () -> Unit,
+    onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val observation = uiState.observation
@@ -81,7 +85,7 @@ fun ObservationDetailScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = observation?.taxon?.preferred_common_name
+                        text = observation?.commonName
                             ?: stringResource(R.string.detail_title),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -103,7 +107,36 @@ fun ObservationDetailScreen(
             )
         }
     ) { innerPadding ->
-        if (observation == null) {
+        if (uiState.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else if (uiState.isError) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(32.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = stringResource(R.string.error_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(onClick = onRetry) {
+                    Text(stringResource(R.string.action_retry))
+                }
+            }
+        } else if (observation == null) {
             NotFoundContent(
                 observationId = uiState.observationId,
                 onBackClick = onBackClick,
@@ -135,16 +168,17 @@ private fun ObservationDetailContent(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(280.dp)
+                .height(160.dp)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
-            Image(
-                painter = painterResource(observation.photos.first().localRes),
-                contentDescription = observation.taxon.preferred_common_name,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+            Text(
+                text = stringResource(R.string.photo_placeholder),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.align(Alignment.Center)
             )
             Badge(
-                text = stringResource(qualityLabel(observation.quality_grade)),
+                text = stringResource(qualityLabel(observation.qualityGrade)),
                 containerColor = Color.Black.copy(alpha = 0.55f),
                 contentColor = Color.White,
                 modifier = Modifier
@@ -159,31 +193,36 @@ private fun ObservationDetailContent(
         ) {
             Column {
                 Text(
-                    text = observation.taxon.preferred_common_name,
+                    text = observation.commonName ?: stringResource(R.string.unknown_species),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.SemiBold
                 )
-                Text(
-                    text = observation.taxon.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontStyle = FontStyle.Italic,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                observation.scientificName?.let { scientificName ->
+                    Text(
+                        text = scientificName,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontStyle = FontStyle.Italic,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
 
             DetailSection(title = R.string.detail_section_observation) {
-                DetailRow(R.string.label_species_guess, observation.species_guess)
-                DetailRow(R.string.label_date, observation.observed_on)
-                DetailRow(R.string.label_place, observation.place_guess)
-                DetailRow(R.string.label_location, formatLocation(observation.location))
-                DetailRow(R.string.label_quality, stringResource(qualityLabel(observation.quality_grade)))
+                val unknown = stringResource(R.string.value_unknown)
+                DetailRow(R.string.label_species_guess, observation.speciesGuess ?: unknown)
+                DetailRow(R.string.label_date, observation.observedOn ?: unknown)
+                DetailRow(R.string.label_place, observation.placeGuess ?: unknown)
+                DetailRow(R.string.label_location, formatLocation(observation.location) ?: unknown)
+                DetailRow(R.string.label_quality, stringResource(qualityLabel(observation.qualityGrade)))
                 DetailRow(R.string.label_observation_id, observation.id.toString())
             }
 
-            DetailSection(title = R.string.detail_section_taxon) {
-                DetailRow(R.string.label_taxon_group, stringResource(iconicTaxonLabel(observation.taxon.iconic_taxon_name)))
-                DetailRow(R.string.label_rank, rankLabel(observation.taxon.rank))
-                DetailRow(R.string.label_taxon_id, observation.taxon.id.toString())
+            observation.taxon?.let { taxon ->
+                DetailSection(title = R.string.detail_section_taxon) {
+                    DetailRow(R.string.label_taxon_group, stringResource(iconicTaxonLabel(taxon.iconicTaxonName)))
+                    DetailRow(R.string.label_rank, rankLabel(taxon.rank) ?: stringResource(R.string.value_unknown))
+                    DetailRow(R.string.label_taxon_id, taxon.id.toString())
+                }
             }
 
             observation.description?.let { description ->
@@ -195,12 +234,13 @@ private fun ObservationDetailContent(
                 }
             }
 
-            val wikipediaUrl = observation.taxon.wikipedia_url
-            if (observation.uri.isNotBlank() || wikipediaUrl != null) {
+            val observationUri = observation.uri
+            val wikipediaUrl = observation.taxon?.wikipediaUrl
+            if (observationUri != null || wikipediaUrl != null) {
                 DetailSection(title = R.string.detail_section_links) {
-                    if (observation.uri.isNotBlank()) {
+                    if (observationUri != null) {
                         OutlinedButton(
-                            onClick = { uriHandler.openUri(observation.uri) },
+                            onClick = { uriHandler.openUri(observationUri) },
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(stringResource(R.string.link_inaturalist))
@@ -292,7 +332,7 @@ private fun NotFoundContent(
     }
 }
 
-private fun rankLabel(rank: String): String = when (rank) {
+private fun rankLabel(rank: String?): String? = when (rank) {
     "species" -> "вид"
     "subspecies" -> "підвид"
     "genus" -> "рід"
@@ -302,11 +342,15 @@ private fun rankLabel(rank: String): String = when (rank) {
 @Preview(showBackground = true)
 @Composable
 private fun ObservationDetailScreenPreview() {
-    val observation = SampleObservations.items[3]
     NatureTheme {
         ObservationDetailScreen(
-            uiState = ObservationDetailUiState(observation.id, observation),
-            onBackClick = {}
+            uiState = ObservationDetailUiState(
+                observationId = previewObservation.id,
+                isLoading = false,
+                observation = previewObservation
+            ),
+            onBackClick = {},
+            onRetry = {}
         )
     }
 }
@@ -316,8 +360,9 @@ private fun ObservationDetailScreenPreview() {
 private fun ObservationDetailNotFoundPreview() {
     NatureTheme {
         ObservationDetailScreen(
-            uiState = ObservationDetailUiState(observationId = 42, observation = null),
-            onBackClick = {}
+            uiState = ObservationDetailUiState(observationId = 42, isLoading = false),
+            onBackClick = {},
+            onRetry = {}
         )
     }
 }
