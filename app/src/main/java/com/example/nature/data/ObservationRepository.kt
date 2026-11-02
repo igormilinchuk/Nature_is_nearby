@@ -15,7 +15,9 @@ class ObservationRepository(
             latitude = area.latitude,
             longitude = area.longitude,
             radiusKm = SearchArea.RADIUS_KM
-        ).results.map { it.toDomain() }
+        ).results
+            .map { it.toDomain() }
+            .distinctBy { it.id }
 
     suspend fun getObservation(id: Long): Observation? =
         try {

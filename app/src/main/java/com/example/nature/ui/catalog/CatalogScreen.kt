@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,6 +44,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nature.R
 import com.example.nature.ui.previewObservation
+import com.example.nature.data.Observation
 import com.example.nature.data.SearchArea
 import com.example.nature.data.TaxonFilter
 import com.example.nature.ui.common.ErrorContent
@@ -87,6 +90,7 @@ fun CatalogScreen(
     modifier: Modifier = Modifier
 ) {
     val count = (uiState.content as? CatalogContent.Success)?.observations?.size ?: 0
+    val listState = rememberLazyListState()
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -171,27 +175,49 @@ fun CatalogScreen(
                     onShowAll = onShowAll,
                     modifier = Modifier.fillMaxSize()
                 )
-                is CatalogContent.Success -> LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    item {
-                        Text(
-                            text = stringResource(R.string.catalog_header),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    items(content.observations, key = { it.id }) { observation ->
-                        ObservationCard(
-                            observation = observation,
-                            showScientificNames = uiState.showScientificNames,
-                            onClick = { onItemClick(observation.id) }
-                        )
-                    }
-                }
+                is CatalogContent.Success -> ObservationList(
+                    observations = content.observations,
+                    showScientificNames = uiState.showScientificNames,
+                    onItemClick = onItemClick,
+                    listState = listState,
+                    modifier = Modifier.fillMaxSize()
+                )
             }
+        }
+    }
+}
+
+@Composable
+fun ObservationList(
+    observations: List<Observation>,
+    showScientificNames: Boolean,
+    onItemClick: (Long) -> Unit,
+    listState: LazyListState,
+    modifier: Modifier = Modifier
+) {
+    LazyColumn(
+        modifier = modifier,
+        state = listState,
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        item(key = "header", contentType = "header") {
+            Text(
+                text = stringResource(R.string.catalog_header),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        items(
+            items = observations,
+            key = { observation -> observation.id },
+            contentType = { "observation" }
+        ) { observation ->
+            ObservationCard(
+                observation = observation,
+                showScientificNames = showScientificNames,
+                onClick = { onItemClick(observation.id) }
+            )
         }
     }
 }
@@ -209,7 +235,7 @@ fun TaxonFilterRow(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(options) { option ->
+        items(options, key = { option -> option.name }) { option ->
             FilterChip(
                 selected = option == selected,
                 onClick = { onSelect(option) },

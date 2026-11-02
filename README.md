@@ -38,6 +38,12 @@ GET https://api.inaturalist.org/v1/observations?taxon_name=Vulpes&per_page=20&ph
 - Головний екран має чотири стани: завантаження, помилка, порожній результат, список. Помилки розрізняються: немає мережі, помилка сервера, неочікуваний формат відповіді; на кожному екрані помилки є кнопка «Спробувати ще раз».
 - Runtime-дозвіл `ACCESS_COARSE_LOCATION` запитується кнопкою «Шукати біля мене» в TopAppBar. Після дозволу пошук іде в радіусі 50 км від користувача, після відмови — від Києва, а решта застосунку працює як раніше.
 
+## Каталог (ЛР 9)
+
+- Список спостережень побудований на `LazyColumn` у composable `ObservationList`; кожен елемент — `ObservationCard(observation, onClick)` зі стабільним ключем `observation.id`.
+- Унікальність ключів гарантує `distinctBy { it.id }` у репозиторії, її перевіряє unit-тест `ObservationRepositoryTest`.
+- Стан прокрутки (`rememberLazyListState`) і завантажені дані (у `CatalogViewModel`) зберігаються, тому після повернення з деталей каталог лишається на тій самій позиції й не завантажується заново.
+
 ## Технології
 
 Kotlin, Jetpack Compose, Material 3, Navigation Compose, DataStore, Retrofit, kotlinx.serialization, Gradle Kotlin DSL.
