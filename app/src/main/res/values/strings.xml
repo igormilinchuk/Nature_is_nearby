@@ -49,6 +49,18 @@
     <string name="unknown_species">Невідомий вид</string>
     <string name="value_unknown">—</string>
     <string name="photo_placeholder">Фото з\'явиться згодом</string>
-    <string name="error_title">Не вдалося завантажити спостереження</string>
+    <string name="error_no_network_title">Немає підключення до інтернету</string>
+    <string name="error_no_network_message">Перевірте мережу або вимкніть авіарежим і спробуйте ще раз.</string>
+    <string name="error_server_title">Сервер iNaturalist не відповідає</string>
+    <string name="error_server_message">Сервер повернув помилку (код %1$d). Спробуйте трохи пізніше.</string>
+    <string name="error_bad_response_title">Не вдалося прочитати відповідь</string>
+    <string name="error_bad_response_message">Сервер повернув дані в неочікуваному форматі. Спробуйте ще раз пізніше.</string>
+    <string name="error_unknown_title">Щось пішло не так</string>
+    <string name="error_unknown_message">Не вдалося завантажити спостереження. Спробуйте ще раз.</string>
+    <string name="action_search_near_me">Шукати біля мене</string>
+    <string name="search_area_default">Спостереження в радіусі %1$d км від Києва</string>
+    <string name="search_area_user">Спостереження в радіусі %1$d км від вас</string>
+    <string name="location_permission_denied">Доступ до геолокації не надано, тому показуємо спостереження в радіусі %1$d км від Києва</string>
+    <string name="location_unavailable">Не вдалося визначити ваше місце, тому показуємо спостереження в радіусі %1$d км від Києва</string>
     <string name="action_retry">Спробувати ще раз</string>
 </resources>

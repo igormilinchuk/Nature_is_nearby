@@ -1,5 +1,8 @@
 package com.example.nature.ui.catalog
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -38,7 +42,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nature.R
 import com.example.nature.ui.previewObservation
+import com.example.nature.data.SearchArea
 import com.example.nature.data.TaxonFilter
+import com.example.nature.ui.common.ErrorContent
 import com.example.nature.ui.theme.NatureTheme
 
 @Composable
@@ -49,8 +55,16 @@ fun CatalogRoute(
     viewModel: CatalogViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        viewModel.onLocationPermissionResult(granted)
+    }
     CatalogScreen(
         uiState = uiState,
+        onLocationClick = {
+            locationPermissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+        },
         onFilterSelected = viewModel::onFilterSelected,
         onShowAll = viewModel::onShowAllClicked,
         onRetry = viewModel::onRetryClicked,
@@ -64,6 +78,7 @@ fun CatalogRoute(
 @Composable
 fun CatalogScreen(
     uiState: CatalogUiState,
+    onLocationClick: () -> Unit,
     onFilterSelected: (TaxonFilter) -> Unit,
     onShowAll: () -> Unit,
     onRetry: () -> Unit,
@@ -71,7 +86,7 @@ fun CatalogScreen(
     onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val visible = uiState.observations
+    val count = (uiState.content as? CatalogContent.Success)?.observations?.size ?: 0
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -86,14 +101,29 @@ fun CatalogScreen(
                         Text(
                             text = pluralStringResource(
                                 R.plurals.observations_count,
-                                visible.size,
-                                visible.size
+                                count,
+                                count
                             ),
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
                 },
                 actions = {
+                    if (uiState.isLocating) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .padding(12.dp)
+                                .size(24.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        IconButton(onClick = onLocationClick) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_my_location),
+                                contentDescription = stringResource(R.string.action_search_near_me)
+                            )
+                        }
+                    }
                     IconButton(onClick = onSettingsClick) {
                         Icon(
                             painter = painterResource(R.drawable.ic_settings),
@@ -119,27 +149,29 @@ fun CatalogScreen(
                 selected = uiState.selectedFilter,
                 onSelect = onFilterSelected
             )
+            SearchAreaInfo(
+                isUserLocation = uiState.searchArea.isUserLocation,
+                message = uiState.locationMessage
+            )
 
-            if (uiState.isLoading) {
-                Box(
+            when (val content = uiState.content) {
+                CatalogContent.Loading -> Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
                 }
-            } else if (uiState.isError) {
-                ErrorState(
+                is CatalogContent.Error -> ErrorContent(
+                    error = content.error,
                     onRetry = onRetry,
                     modifier = Modifier.fillMaxSize()
                 )
-            } else if (visible.isEmpty()) {
-                EmptyState(
+                CatalogContent.Empty -> EmptyState(
                     filter = uiState.selectedFilter,
                     onShowAll = onShowAll,
                     modifier = Modifier.fillMaxSize()
                 )
-            } else {
-                LazyColumn(
+                is CatalogContent.Success -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -151,7 +183,7 @@ fun CatalogScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    items(visible, key = { it.id }) { observation ->
+                    items(content.observations, key = { it.id }) { observation ->
                         ObservationCard(
                             observation = observation,
                             showScientificNames = uiState.showScientificNames,
@@ -219,26 +251,25 @@ private fun EmptyState(
 }
 
 @Composable
-private fun ErrorState(
-    onRetry: () -> Unit,
-    modifier: Modifier = Modifier
+private fun SearchAreaInfo(
+    isUserLocation: Boolean,
+    message: LocationMessage?
 ) {
-    Column(
-        modifier = modifier.padding(32.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = stringResource(R.string.error_title),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onRetry) {
-            Text(stringResource(R.string.action_retry))
+    val text = when (message) {
+        LocationMessage.PERMISSION_DENIED -> stringResource(R.string.location_permission_denied, SearchArea.RADIUS_KM)
+        LocationMessage.UNAVAILABLE -> stringResource(R.string.location_unavailable, SearchArea.RADIUS_KM)
+        null -> if (isUserLocation) {
+            stringResource(R.string.search_area_user, SearchArea.RADIUS_KM)
+        } else {
+            stringResource(R.string.search_area_default, SearchArea.RADIUS_KM)
         }
     }
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodySmall,
+        color = if (message != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+    )
 }
 
 @Preview(showBackground = true)
@@ -246,7 +277,8 @@ private fun ErrorState(
 private fun CatalogScreenPreview() {
     NatureTheme {
         CatalogScreen(
-            uiState = CatalogUiState(observations = listOf(previewObservation)),
+            uiState = CatalogUiState(content = CatalogContent.Success(listOf(previewObservation))),
+            onLocationClick = {},
             onFilterSelected = {},
             onShowAll = {},
             onRetry = {},

@@ -33,6 +33,11 @@ GET https://api.inaturalist.org/v1/observations?taxon_name=Vulpes&per_page=20&ph
 - Деталі: `GET /v1/observations/{id}?locale=uk`.
 - Ключ API не потрібен, тож у `local.properties` нічого дописувати не треба.
 
+## Робота без мережі й геолокація (ЛР 8)
+
+- Головний екран має чотири стани: завантаження, помилка, порожній результат, список. Помилки розрізняються: немає мережі, помилка сервера, неочікуваний формат відповіді; на кожному екрані помилки є кнопка «Спробувати ще раз».
+- Runtime-дозвіл `ACCESS_COARSE_LOCATION` запитується кнопкою «Шукати біля мене» в TopAppBar. Після дозволу пошук іде в радіусі 50 км від користувача, після відмови — від Києва, а решта застосунку працює як раніше.
+
 ## Технології
 
 Kotlin, Jetpack Compose, Material 3, Navigation Compose, DataStore, Retrofit, kotlinx.serialization, Gradle Kotlin DSL.

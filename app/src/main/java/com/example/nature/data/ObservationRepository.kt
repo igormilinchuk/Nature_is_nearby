@@ -3,25 +3,24 @@ package com.example.nature.data
 import com.example.nature.data.remote.INaturalistApi
 import com.example.nature.data.remote.NetworkModule
 import com.example.nature.data.remote.toDomain
+import retrofit2.HttpException
 
 class ObservationRepository(
     private val api: INaturalistApi = NetworkModule.api
 ) {
 
-    suspend fun getObservations(filter: TaxonFilter): List<Observation> =
+    suspend fun getObservations(filter: TaxonFilter, area: SearchArea): List<Observation> =
         api.getObservations(
             iconicTaxa = filter.iconicTaxonName,
-            latitude = SEARCH_LATITUDE,
-            longitude = SEARCH_LONGITUDE,
-            radiusKm = SEARCH_RADIUS_KM
+            latitude = area.latitude,
+            longitude = area.longitude,
+            radiusKm = SearchArea.RADIUS_KM
         ).results.map { it.toDomain() }
 
     suspend fun getObservation(id: Long): Observation? =
-        api.getObservation(id).results.firstOrNull()?.toDomain()
-
-    companion object {
-        const val SEARCH_LATITUDE = 50.4501
-        const val SEARCH_LONGITUDE = 30.5234
-        const val SEARCH_RADIUS_KM = 50
-    }
+        try {
+            api.getObservation(id).results.firstOrNull()?.toDomain()
+        } catch (e: HttpException) {
+            if (e.code() == 404) null else throw e
+        }
 }

@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nature.data.ObservationRepository
+import com.example.nature.data.toLoadError
 import com.example.nature.ui.navigation.NatureDestinations
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,14 +33,14 @@ class ObservationDetailViewModel(
 
     private fun loadObservation() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, isError = false) }
+            _uiState.update { it.copy(isLoading = true, error = null) }
             try {
                 val observation = observationRepository.getObservation(observationId)
                 _uiState.update { it.copy(isLoading = false, observation = observation) }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, isError = true) }
+                _uiState.update { it.copy(isLoading = false, error = e.toLoadError()) }
             }
         }
     }

@@ -47,6 +47,7 @@ import com.example.nature.R
 import com.example.nature.data.Observation
 import com.example.nature.data.commonName
 import com.example.nature.data.scientificName
+import com.example.nature.ui.common.ErrorContent
 import com.example.nature.ui.previewObservation
 import com.example.nature.ui.catalog.Badge
 import com.example.nature.ui.catalog.formatLocation
@@ -116,26 +117,14 @@ fun ObservationDetailScreen(
             ) {
                 CircularProgressIndicator()
             }
-        } else if (uiState.isError) {
-            Column(
+        } else if (uiState.error != null) {
+            ErrorContent(
+                error = uiState.error,
+                onRetry = onRetry,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .padding(32.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = stringResource(R.string.error_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = onRetry) {
-                    Text(stringResource(R.string.action_retry))
-                }
-            }
+            )
         } else if (observation == null) {
             NotFoundContent(
                 observationId = uiState.observationId,

@@ -3,10 +3,13 @@ package com.example.nature.ui.catalog
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.nature.data.LocationProvider
 import com.example.nature.data.ObservationRepository
+import com.example.nature.data.SearchArea
 import com.example.nature.data.SettingsRepository
 import com.example.nature.data.TaxonFilter
 import com.example.nature.data.settingsDataStore
+import com.example.nature.data.toLoadError
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +24,7 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
 
     private val settingsRepository = SettingsRepository(application.settingsDataStore)
     private val observationRepository = ObservationRepository()
+    private val locationProvider = LocationProvider(application)
 
     private val _uiState = MutableStateFlow(CatalogUiState())
 
@@ -42,7 +46,7 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun onFilterSelected(filter: TaxonFilter) {
-        if (filter == _uiState.value.selectedFilter && !_uiState.value.isError) return
+        if (filter == _uiState.value.selectedFilter && _uiState.value.content !is CatalogContent.Error) return
         _uiState.update { it.copy(selectedFilter = filter) }
         loadObservations()
     }
@@ -55,19 +59,53 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
         loadObservations()
     }
 
-    private fun loadObservations() {
-        loadJob?.cancel()
-        val filter = _uiState.value.selectedFilter
-        loadJob = viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, isError = false) }
-            try {
-                val observations = observationRepository.getObservations(filter)
-                _uiState.update { it.copy(observations = observations, isLoading = false) }
+    fun onLocationPermissionResult(granted: Boolean) {
+        if (!granted) {
+            _uiState.update { it.copy(locationMessage = LocationMessage.PERMISSION_DENIED) }
+            return
+        }
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLocating = true, locationMessage = null) }
+            val location = try {
+                locationProvider.currentLocation()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _uiState.update { it.copy(observations = emptyList(), isLoading = false, isError = true) }
+                null
             }
+            if (location == null) {
+                _uiState.update { it.copy(isLocating = false, locationMessage = LocationMessage.UNAVAILABLE) }
+            } else {
+                _uiState.update {
+                    it.copy(
+                        isLocating = false,
+                        searchArea = SearchArea(
+                            latitude = location.latitude,
+                            longitude = location.longitude,
+                            isUserLocation = true
+                        )
+                    )
+                }
+                loadObservations()
+            }
+        }
+    }
+
+    private fun loadObservations() {
+        loadJob?.cancel()
+        val filter = _uiState.value.selectedFilter
+        val area = _uiState.value.searchArea
+        loadJob = viewModelScope.launch {
+            _uiState.update { it.copy(content = CatalogContent.Loading) }
+            val content = try {
+                val observations = observationRepository.getObservations(filter, area)
+                if (observations.isEmpty()) CatalogContent.Empty else CatalogContent.Success(observations)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                CatalogContent.Error(e.toLoadError())
+            }
+            _uiState.update { it.copy(content = content) }
         }
     }
 }
