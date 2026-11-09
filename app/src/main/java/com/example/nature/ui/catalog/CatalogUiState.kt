@@ -20,6 +20,8 @@ enum class LocationMessage {
 
 data class CatalogUiState(
     val content: CatalogContent = CatalogContent.Loading,
+    val isRefreshing: Boolean = false,
+    val counts: Map<TaxonFilter, Int> = emptyMap(),
     val filters: List<TaxonFilter> = TaxonFilter.entries,
     val selectedFilter: TaxonFilter = TaxonFilter.ALL,
     val searchArea: SearchArea = SearchArea.Default,

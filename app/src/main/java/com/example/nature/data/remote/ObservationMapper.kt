@@ -13,8 +13,7 @@ fun ObservationDto.toDomain(): Observation = Observation(
     description = description.orNullIfBlank(),
     uri = uri.orNullIfBlank(),
     taxon = taxon?.toDomain(),
-    photoUrl = photos.firstNotNullOfOrNull { it.url.orNullIfBlank() }
-        ?.replace("/square.", "/medium.")
+    photoUrl = photos.firstNotNullOfOrNull { it.url.toPhotoUrl() }
 )
 
 fun TaxonDto.toDomain(): Taxon? {
@@ -30,3 +29,16 @@ fun TaxonDto.toDomain(): Taxon? {
 }
 
 private fun String?.orNullIfBlank(): String? = this?.takeIf { it.isNotBlank() }
+
+internal fun String?.toPhotoUrl(): String? {
+    val raw = orNullIfBlank()?.trim() ?: return null
+    val absolute = when {
+        raw.startsWith("//") -> "https:$raw"
+        raw.startsWith("http://") -> "https://" + raw.removePrefix("http://")
+        raw.startsWith("https://") -> raw
+        else -> return null
+    }
+    return absolute
+        .replace(" ", "%20")
+        .replace("/square.", "/medium.")
+}

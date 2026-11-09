@@ -1,7 +1,6 @@
 package com.example.nature.ui.detail
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,6 +47,7 @@ import com.example.nature.data.Observation
 import com.example.nature.data.commonName
 import com.example.nature.data.scientificName
 import com.example.nature.ui.common.ErrorContent
+import com.example.nature.ui.common.ObservationPhoto
 import com.example.nature.ui.previewObservation
 import com.example.nature.ui.catalog.Badge
 import com.example.nature.ui.catalog.formatLocation
@@ -157,14 +157,12 @@ private fun ObservationDetailContent(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(160.dp)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .height(300.dp)
         ) {
-            Text(
-                text = stringResource(R.string.photo_placeholder),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.align(Alignment.Center)
+            ObservationPhoto(
+                url = observation.photoUrl,
+                contentDescription = observation.commonName,
+                modifier = Modifier.fillMaxSize()
             )
             Badge(
                 text = stringResource(qualityLabel(observation.qualityGrade)),

@@ -48,7 +48,8 @@
     <string name="settings_scientific_names_summary">У списку спостережень показувати латинську назву виду замість української</string>
     <string name="unknown_species">Невідомий вид</string>
     <string name="value_unknown">—</string>
-    <string name="photo_placeholder">Фото з\'явиться згодом</string>
+    <string name="photo_missing">Немає фото</string>
+    <string name="photo_error">Не вдалося завантажити фото</string>
     <string name="error_no_network_title">Немає підключення до інтернету</string>
     <string name="error_no_network_message">Перевірте мережу або вимкніть авіарежим і спробуйте ще раз.</string>
     <string name="error_server_title">Сервер iNaturalist не відповідає</string>

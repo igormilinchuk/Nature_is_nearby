@@ -4,6 +4,8 @@ import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -29,6 +31,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -71,6 +74,7 @@ fun CatalogRoute(
         onFilterSelected = viewModel::onFilterSelected,
         onShowAll = viewModel::onShowAllClicked,
         onRetry = viewModel::onRetryClicked,
+        onRefresh = viewModel::onRefresh,
         onItemClick = onItemClick,
         onSettingsClick = onSettingsClick,
         modifier = modifier
@@ -85,6 +89,7 @@ fun CatalogScreen(
     onFilterSelected: (TaxonFilter) -> Unit,
     onShowAll: () -> Unit,
     onRetry: () -> Unit,
+    onRefresh: () -> Unit,
     onItemClick: (Long) -> Unit,
     onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -151,6 +156,7 @@ fun CatalogScreen(
             TaxonFilterRow(
                 options = uiState.filters,
                 selected = uiState.selectedFilter,
+                counts = uiState.counts,
                 onSelect = onFilterSelected
             )
             SearchAreaInfo(
@@ -158,30 +164,40 @@ fun CatalogScreen(
                 message = uiState.locationMessage
             )
 
-            when (val content = uiState.content) {
-                CatalogContent.Loading -> Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
+            PullToRefreshBox(
+                isRefreshing = uiState.isRefreshing,
+                onRefresh = onRefresh,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                when (val content = uiState.content) {
+                    CatalogContent.Loading -> Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                    is CatalogContent.Error -> ErrorContent(
+                        error = content.error,
+                        onRetry = onRetry,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                    )
+                    CatalogContent.Empty -> EmptyState(
+                        filter = uiState.selectedFilter,
+                        onShowAll = onShowAll,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                    )
+                    is CatalogContent.Success -> ObservationList(
+                        observations = content.observations,
+                        showScientificNames = uiState.showScientificNames,
+                        onItemClick = onItemClick,
+                        listState = listState,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
-                is CatalogContent.Error -> ErrorContent(
-                    error = content.error,
-                    onRetry = onRetry,
-                    modifier = Modifier.fillMaxSize()
-                )
-                CatalogContent.Empty -> EmptyState(
-                    filter = uiState.selectedFilter,
-                    onShowAll = onShowAll,
-                    modifier = Modifier.fillMaxSize()
-                )
-                is CatalogContent.Success -> ObservationList(
-                    observations = content.observations,
-                    showScientificNames = uiState.showScientificNames,
-                    onItemClick = onItemClick,
-                    listState = listState,
-                    modifier = Modifier.fillMaxSize()
-                )
             }
         }
     }
@@ -227,6 +243,7 @@ fun ObservationList(
 fun TaxonFilterRow(
     options: List<TaxonFilter>,
     selected: TaxonFilter,
+    counts: Map<TaxonFilter, Int>,
     onSelect: (TaxonFilter) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -239,7 +256,10 @@ fun TaxonFilterRow(
             FilterChip(
                 selected = option == selected,
                 onClick = { onSelect(option) },
-                label = { Text(stringResource(option.label)) }
+                label = {
+                    val label = stringResource(option.label)
+                    Text(counts[option]?.let { "$label · $it" } ?: label)
+                }
             )
         }
     }
@@ -308,6 +328,7 @@ private fun CatalogScreenPreview() {
             onFilterSelected = {},
             onShowAll = {},
             onRetry = {},
+            onRefresh = {},
             onItemClick = {},
             onSettingsClick = {}
         )
@@ -321,6 +342,7 @@ private fun TaxonFilterRowPreview() {
         TaxonFilterRow(
             options = TaxonFilter.entries,
             selected = TaxonFilter.AVES,
+            counts = mapOf(TaxonFilter.ALL to 1240, TaxonFilter.AVES to 312),
             onSelect = {}
         )
     }

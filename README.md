@@ -44,6 +44,13 @@ GET https://api.inaturalist.org/v1/observations?taxon_name=Vulpes&per_page=20&ph
 - Унікальність ключів гарантує `distinctBy { it.id }` у репозиторії, її перевіряє unit-тест `ObservationRepositoryTest`.
 - Стан прокрутки (`rememberLazyListState`) і завантажені дані (у `CatalogViewModel`) зберігаються, тому після повернення з деталей каталог лишається на тій самій позиції й не завантажується заново.
 
+## Фото й оновлення (ЛР 10)
+
+- Фото завантажує Coil (`AsyncImage` у `ObservationPhoto`); поки фото вантажиться, видно індикатор, а без адреси чи з битою адресою — сірий блок із підписом.
+- Адресу фото лагодить мапер `toPhotoUrl()`: `http://` і `//` перетворюються на `https://`, розмір `square` замінюється на `medium`, порожні й відносні адреси стають `null`.
+- Кількість спостережень для кожної групи на чипах фільтрів довантажується паралельно (`async` + `awaitAll`), а `Semaphore` у репозиторії обмежує одночасні запити до iNaturalist трьома.
+- Список оновлюється жестом «потягнути вниз» (`PullToRefreshBox`) з окремим індикатором.
+
 ## Технології
 
-Kotlin, Jetpack Compose, Material 3, Navigation Compose, DataStore, Retrofit, kotlinx.serialization, Gradle Kotlin DSL.
+Kotlin, Jetpack Compose, Material 3, Navigation Compose, DataStore, Retrofit, kotlinx.serialization, Coil, Gradle Kotlin DSL.

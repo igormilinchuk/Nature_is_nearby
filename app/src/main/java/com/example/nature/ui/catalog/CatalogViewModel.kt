@@ -40,9 +40,16 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
     )
 
     private var loadJob: Job? = null
+    private var countsJob: Job? = null
 
     init {
         loadObservations()
+        loadCounts()
+    }
+
+    fun onRefresh() {
+        loadObservations(isRefresh = true)
+        loadCounts()
     }
 
     fun onFilterSelected(filter: TaxonFilter) {
@@ -87,16 +94,19 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
                     )
                 }
                 loadObservations()
+                loadCounts()
             }
         }
     }
 
-    private fun loadObservations() {
+    private fun loadObservations(isRefresh: Boolean = false) {
         loadJob?.cancel()
         val filter = _uiState.value.selectedFilter
         val area = _uiState.value.searchArea
         loadJob = viewModelScope.launch {
-            _uiState.update { it.copy(content = CatalogContent.Loading) }
+            _uiState.update {
+                if (isRefresh) it.copy(isRefreshing = true) else it.copy(content = CatalogContent.Loading)
+            }
             val content = try {
                 val observations = observationRepository.getObservations(filter, area)
                 if (observations.isEmpty()) CatalogContent.Empty else CatalogContent.Success(observations)
@@ -105,7 +115,17 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
             } catch (e: Exception) {
                 CatalogContent.Error(e.toLoadError())
             }
-            _uiState.update { it.copy(content = content) }
+            _uiState.update { it.copy(content = content, isRefreshing = false) }
+        }
+    }
+
+    private fun loadCounts() {
+        countsJob?.cancel()
+        val filters = _uiState.value.filters
+        val area = _uiState.value.searchArea
+        countsJob = viewModelScope.launch {
+            val counts = observationRepository.getCounts(filters, area)
+            _uiState.update { it.copy(counts = counts) }
         }
     }
 }

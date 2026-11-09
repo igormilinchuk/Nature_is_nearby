@@ -1,12 +1,12 @@
 package com.example.nature.ui.catalog
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -31,6 +31,7 @@ import com.example.nature.R
 import com.example.nature.data.Observation
 import com.example.nature.data.commonName
 import com.example.nature.data.scientificName
+import com.example.nature.ui.common.ObservationPhoto
 import com.example.nature.ui.previewObservation
 import com.example.nature.ui.theme.NatureTheme
 
@@ -103,14 +104,12 @@ private fun ObservationImage(observation: Observation) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(120.dp)
-            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .height(190.dp)
     ) {
-        Text(
-            text = stringResource(R.string.photo_placeholder),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.align(Alignment.Center)
+        ObservationPhoto(
+            url = observation.photoUrl,
+            contentDescription = observation.commonName,
+            modifier = Modifier.fillMaxSize()
         )
         Badge(
             text = stringResource(iconicTaxonLabel(observation.taxon?.iconicTaxonName)),
