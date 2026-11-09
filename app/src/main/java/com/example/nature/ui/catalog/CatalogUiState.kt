@@ -10,6 +10,7 @@ sealed interface CatalogContent {
     data object Loading : CatalogContent
     data class Error(val error: LoadError) : CatalogContent
     data object Empty : CatalogContent
+    data class NoSearchResults(val query: String) : CatalogContent
     data class Success(val observations: List<Observation>) : CatalogContent
 }
 

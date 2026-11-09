@@ -4,6 +4,9 @@ import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
@@ -27,6 +30,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -36,10 +40,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -68,6 +74,10 @@ fun CatalogRoute(
     }
     CatalogScreen(
         uiState = uiState,
+        searchQuery = viewModel.searchQuery,
+        onSearchQueryChange = viewModel::onSearchQueryChange,
+        onSearchSubmit = viewModel::onSearchSubmit,
+        onClearSearch = viewModel::onClearSearch,
         onLocationClick = {
             locationPermissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
         },
@@ -85,6 +95,10 @@ fun CatalogRoute(
 @Composable
 fun CatalogScreen(
     uiState: CatalogUiState,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
+    onSearchSubmit: () -> Unit,
+    onClearSearch: () -> Unit,
     onLocationClick: () -> Unit,
     onFilterSelected: (TaxonFilter) -> Unit,
     onShowAll: () -> Unit,
@@ -153,10 +167,16 @@ fun CatalogScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
+            SearchField(
+                query = searchQuery,
+                onQueryChange = onSearchQueryChange,
+                onSearch = onSearchSubmit,
+                onClear = onClearSearch
+            )
             TaxonFilterRow(
                 options = uiState.filters,
                 selected = uiState.selectedFilter,
-                counts = uiState.counts,
+                counts = if (searchQuery.isBlank()) uiState.counts else emptyMap(),
                 onSelect = onFilterSelected
             )
             SearchAreaInfo(
@@ -186,6 +206,13 @@ fun CatalogScreen(
                     CatalogContent.Empty -> EmptyState(
                         filter = uiState.selectedFilter,
                         onShowAll = onShowAll,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                    )
+                    is CatalogContent.NoSearchResults -> NoSearchResultsState(
+                        query = content.query,
+                        onClear = onClearSearch,
                         modifier = Modifier
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState())
@@ -266,6 +293,81 @@ fun TaxonFilterRow(
 }
 
 @Composable
+fun SearchField(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onSearch: () -> Unit,
+    onClear: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val focusManager = LocalFocusManager.current
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, end = 16.dp, top = 12.dp),
+        placeholder = { Text(stringResource(R.string.search_placeholder)) },
+        leadingIcon = {
+            Icon(
+                painter = painterResource(R.drawable.ic_search),
+                contentDescription = null
+            )
+        },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = onClear) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_close),
+                        contentDescription = stringResource(R.string.search_clear)
+                    )
+                }
+            }
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(28.dp),
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        keyboardActions = KeyboardActions(
+            onSearch = {
+                onSearch()
+                focusManager.clearFocus()
+            }
+        )
+    )
+}
+
+@Composable
+private fun NoSearchResultsState(
+    query: String,
+    onClear: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.padding(32.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = stringResource(R.string.search_empty_title, query),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = stringResource(R.string.search_empty_message),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onClear) {
+            Text(stringResource(R.string.search_clear))
+        }
+    }
+}
+
+@Composable
 private fun EmptyState(
     filter: TaxonFilter,
     onShowAll: () -> Unit,
@@ -324,6 +426,10 @@ private fun CatalogScreenPreview() {
     NatureTheme {
         CatalogScreen(
             uiState = CatalogUiState(content = CatalogContent.Success(listOf(previewObservation))),
+            searchQuery = "",
+            onSearchQueryChange = {},
+            onSearchSubmit = {},
+            onClearSearch = {},
             onLocationClick = {},
             onFilterSelected = {},
             onShowAll = {},
@@ -345,6 +451,14 @@ private fun TaxonFilterRowPreview() {
             counts = mapOf(TaxonFilter.ALL to 1240, TaxonFilter.AVES to 312),
             onSelect = {}
         )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 320)
+@Composable
+private fun NoSearchResultsPreview() {
+    NatureTheme {
+        NoSearchResultsState(query = "єдиноріг", onClear = {})
     }
 }
 

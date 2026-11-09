@@ -1,6 +1,9 @@
 package com.example.nature.ui.catalog
 
 import android.app.Application
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nature.data.LocationProvider
@@ -12,6 +15,7 @@ import com.example.nature.data.settingsDataStore
 import com.example.nature.data.toLoadError
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -39,12 +43,38 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
         initialValue = _uiState.value
     )
 
+    var searchQuery by mutableStateOf("")
+        private set
+
     private var loadJob: Job? = null
     private var countsJob: Job? = null
+    private var searchJob: Job? = null
 
     init {
         loadObservations()
         loadCounts()
+    }
+
+    fun onSearchQueryChange(query: String) {
+        searchQuery = query
+        searchJob?.cancel()
+        if (query.isBlank()) {
+            loadObservations()
+            return
+        }
+        searchJob = viewModelScope.launch {
+            delay(SEARCH_DEBOUNCE_MS)
+            loadObservations()
+        }
+    }
+
+    fun onSearchSubmit() {
+        searchJob?.cancel()
+        loadObservations()
+    }
+
+    fun onClearSearch() {
+        onSearchQueryChange("")
     }
 
     fun onRefresh() {
@@ -103,13 +133,22 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
         loadJob?.cancel()
         val filter = _uiState.value.selectedFilter
         val area = _uiState.value.searchArea
+        val query = searchQuery.trim()
         loadJob = viewModelScope.launch {
             _uiState.update {
                 if (isRefresh) it.copy(isRefreshing = true) else it.copy(content = CatalogContent.Loading)
             }
             val content = try {
-                val observations = observationRepository.getObservations(filter, area)
-                if (observations.isEmpty()) CatalogContent.Empty else CatalogContent.Success(observations)
+                val observations = if (query.isEmpty()) {
+                    observationRepository.getObservations(filter, area)
+                } else {
+                    observationRepository.getObservations(filter, area, query)
+                }
+                when {
+                    observations.isNotEmpty() -> CatalogContent.Success(observations)
+                    query.isEmpty() -> CatalogContent.Empty
+                    else -> CatalogContent.NoSearchResults(query)
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -127,5 +166,9 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
             val counts = observationRepository.getCounts(filters, area)
             _uiState.update { it.copy(counts = counts) }
         }
+    }
+
+    companion object {
+        const val SEARCH_DEBOUNCE_MS = 500L
     }
 }

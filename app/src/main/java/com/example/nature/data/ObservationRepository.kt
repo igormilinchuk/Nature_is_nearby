@@ -15,17 +15,25 @@ class ObservationRepository(
     private val api: INaturalistApi = NetworkModule.api
 ) {
 
-    suspend fun getObservations(filter: TaxonFilter, area: SearchArea): List<Observation> =
-        requestLimiter.withPermit {
+    suspend fun getObservations(
+        filter: TaxonFilter,
+        area: SearchArea,
+        query: String? = null
+    ): List<Observation> {
+        val searchText = query?.trim()?.takeIf { it.isNotEmpty() }
+        return requestLimiter.withPermit {
             api.getObservations(
                 iconicTaxa = filter.iconicTaxonName,
                 latitude = area.latitude,
                 longitude = area.longitude,
-                radiusKm = SearchArea.RADIUS_KM
+                radiusKm = SearchArea.RADIUS_KM,
+                query = searchText,
+                searchOn = searchText?.let { SEARCH_ON_NAMES }
             )
         }.results
             .map { it.toDomain() }
             .distinctBy { it.id }
+    }
 
     suspend fun getCounts(filters: List<TaxonFilter>, area: SearchArea): Map<TaxonFilter, Int> =
         coroutineScope {
@@ -62,6 +70,7 @@ class ObservationRepository(
 
     companion object {
         const val MAX_PARALLEL_REQUESTS = 3
+        private const val SEARCH_ON_NAMES = "names"
         private val requestLimiter = Semaphore(MAX_PARALLEL_REQUESTS)
     }
 }

@@ -15,6 +15,8 @@ class ObservationRepositoryTest {
             latitude: Double,
             longitude: Double,
             radiusKm: Int,
+            query: String?,
+            searchOn: String?,
             withPhotos: Boolean,
             orderBy: String,
             perPage: Int,

@@ -12,6 +12,8 @@ interface INaturalistApi {
         @Query("lat") latitude: Double,
         @Query("lng") longitude: Double,
         @Query("radius") radiusKm: Int,
+        @Query("q") query: String? = null,
+        @Query("search_on") searchOn: String? = null,
         @Query("photos") withPhotos: Boolean = true,
         @Query("order_by") orderBy: String = "observed_on",
         @Query("per_page") perPage: Int = 30,
